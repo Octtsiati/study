@@ -7,114 +7,87 @@
 #include<iostream>
 #include<cmath>
 using namespace std;
-template <typename T>
-struct stack
-{
-    struct Node
-    {
-        T val;
-        Node *next;
-    };
-    Node* first;
-    stack();
-    stack(T *a,int n);
-    bool isEmpty(){
-         return first==NULL;
-    }
-    void push(T val);
-    T pop();
-    void show();
-};
-
-void initial(int n,stack<int>&init);
+int** search(int n,int**top);//查找对应的盘在哪根柱子上,返回对应的栈顶指针
+void move(int **top,int *f);
 
 int main(){
-    stack<int>init;//initial
-    stack<int>tran;//transition
-    stack<int>tar;//target
+
     int n;
     cin>>n;
-    initial(n,init);
-    init.show();
+    int *init=new int[n]();//建立三个数组，分别为起始、过渡、目标柱
+    int *tran=new int[n]();
+    int *tar=new int[n]();
+    for(int i=0;i<n;++i){
+        init[i]=i+1;
+    }
+
+    int* top[4]={nullptr};
+    top[0]=&init[0];
+    top[1]=&tran[n-1];//栈顶
+    top[2]=&tar[n-1];
+
     int t=0;
-    int index;
-    for(int i=1;i<pow(2,n);++i){
-        int s=t^i;
-        for(int j=0;j<n;++j){
-            if((i&~(1<<j))&&(t&(1<<j))){//若在第j为数字由0变为1
-                index=j;
+    int index=0;
+    for(int num=1;num<pow(2,n);++num){
+        for(int j=0;j<n;++j){//1.获取盘子数
+            if((num&(1<<j))&&( !(t&(1<<j)) )){//若在第j为数字由0变为1
+                index=j;//需要移动的是第j个盘子(0,1,2...)
+                t=num;
                 break; 
                 }
-            
-        } 
-       move(n){//将对应的盘子右移
 
+        }
+        move(search(index,top),top[2]);//将对应的盘子右移
+             
        }    
-
-
-    }
+        for(int i=0;i<n;++i){
+            cout<<tar[i]<<endl;
+        }
+    
     return 0;
 }
-void initial(int n,stack<int>&init){
-    for(int i=n-1;i>=0;--i){
-        init.push(i);
+int** search(int n,int**top){
+    for(int i=0;i<3;++i){
+        if(*(top[i])-1==n)
+        return &(top[i]);
     }
 }
-template <typename T>
-stack<T>::stack(){
-    first=nullptr;
-}
-template <typename T>
-stack<T>::stack(T *a,int n){
-     Node* oldfirst=first;
-        first=new Node();
-        first->val=a[0];
-        first->next=nullptr;
-    for(int i=1;i<n;++i){
-        push(a[i]);
+void move(int **p,int *f){// p为&top[2] *p为top[2] **p为tran[n-1] f为top[2]
+    int t=**p;
+    while( 1 ){//下一个柱顶元素大于本身
+    if(*p!=f && ( (**(p+1)) >**p)){//p不为p[2]且下一个栈顶比自己大
+        if(*(*p+1)>0)
+        (*p)++;//栈顶弹出一个
+        p++;//指针指向下一个
+        (*p)--;//下一个的栈顶压下去
+        **p=t;
+        break;
     }
-}
-template <typename T>
-void stack<T>::push(T val){
-    if(isEmpty()){
-        Node* oldfirst=first;
-        first=new Node();
-        first->val=val;
-        first->next=nullptr;
+    else if( *p!=f && (**(p+1))==0){//p不为p[2]且下一个栈顶为空
+        if(*(*p+1)>0)
+        (*p)++;//栈顶弹出一个
+        p++;//指针指向下一个
+        **p=t;
+        break;
     }
-    else{
-    Node* oldfirst=first;
-    first=new Node();
-    first->val=val;
-    first->next=oldfirst;
+    else if((*p)==f && (*((&f)-2) >*p)  ){//p为top[2],且top[0]大于top[2]
+        (*p)--;
+        p=(&f)-2;//p直接为top[0]
+        **p=t;
+        break;
     }
-}
-template <typename T>
-T stack<T>::pop(){
-    if(isEmpty()){
-       return false;
+    else if((*p)==f && *((&f)-2)==0 ) {//p为top[2],且top[0]大于top[2]
+        if(*(*p+1)>0)
+        (*p)++;//栈顶弹出一个
+        p=(&f)-2;//p直接为top[0]
+        **p=t;
+        break;
     }
-   {
-    T t=first->val;
-    first=first->next;
-    return t;
-   }
-}
-template <typename T>
-void stack<T>::show(){
-    Node*prev;
-    Node*pNext;
-    prev=first;
-    pNext=first;
-    if(pNext==nullptr)
-    cout<<"none"<<endl;
-    else{
-    while ((pNext->next)!=nullptr)
-    {
-        cout<<pNext->val<<endl;
-        prev=pNext;
-        pNext=pNext->next;
+    else {//剩下的情况，直接跳下一个
+        (*p)++;//栈顶弹出一个
+        p++;//指针指向下一个
     }
-    cout<<pNext->val<<endl;
+        
     }
+
 }
